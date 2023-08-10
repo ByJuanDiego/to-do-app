@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, EmailStr
 
 from config.database import Session
-from middlewares.jwt_handler import sign_jwt
+from utils.jwt_handler import sign_jwt
 from models.user import User as UserModel
 
 user_router = APIRouter()
@@ -25,9 +25,7 @@ class User(BaseModel):
             "examples": [
                 {
                     "username": "ByJuanDiego",
-                    "password_hash": "password",
-                    "email": "juancaspadi@gmail.com",
-                    "name": "Juan Diego"
+                    "password_hash": "password"
                 }
             ]
         }

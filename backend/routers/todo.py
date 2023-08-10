@@ -17,7 +17,7 @@ from models.todo import Todo as TodoModel
 from models.list import TodoList as TodoListModel
 
 
-from middlewares.jwt_bearer import JWTBearer
+from middlewares.auth_handler import JWTBearer
 
 
 todo_router = APIRouter()

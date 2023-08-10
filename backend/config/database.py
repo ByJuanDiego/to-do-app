@@ -14,7 +14,7 @@ database = os.environ['DATABASE']
 
 database_url = f"postgresql://{user}:{password}@{host}:{port}/{database}"
 
-engine = create_engine(database_url, echo=True)
+engine = create_engine(database_url, echo=False)
 
 Session = sessionmaker(bind=engine)
 
