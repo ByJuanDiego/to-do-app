@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 JWT_KEY = os.environ["KEY"]
 JWT_ALGORITHM = os.environ["ALGORITHM"]
 
@@ -17,7 +18,7 @@ def token_response(token: str) -> dict:
     }
 
 
-def signJWT(username: str) -> str:
+def sign_jwt(username: str) -> dict:
 
     payload = {
         "username": username,
@@ -28,7 +29,7 @@ def signJWT(username: str) -> str:
     return token_response(token=token)
 
 
-def decodeJWT(token: str) -> dict:
+def decode_jwt(token: str) -> dict:
     try:
         decode_token: dict = jwt.decode(token, JWT_KEY, algorithms=[JWT_ALGORITHM])
         return decode_token if decode_token['expires'] >= time.time() else None

@@ -1,7 +1,5 @@
 from fastapi import FastAPI
 
-from config.database import Base, engine
-
 from middlewares.error_handler import ErrorHandler
 
 from routers.user import user_router
@@ -13,7 +11,7 @@ app = FastAPI()
 
 app.title = "To-Do App"
 app.version = "0.0.1"
-app.middleware(ErrorHandler)
+app.add_middleware(ErrorHandler)
 app.include_router(user_router)
 app.include_router(list_router)
 app.include_router(todo_router)

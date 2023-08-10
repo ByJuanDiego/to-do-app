@@ -1,24 +1,18 @@
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi import Request, HTTPException
 
-from .jwt_handler import decodeJWT, signJWT
-
-from config.database import Session
-
-from models.user import User as UserModel
+from .jwt_handler import decode_jwt
 
 
 class JWTBearer(HTTPBearer):
-    
 
-    def __init__(self, auto_Error: bool = True):
-        super(JWTBearer, self).__init__(auto_error=auto_Error)
-
+    def __init__(self, auto_error: bool = True):
+        super(JWTBearer, self).__init__(auto_error=auto_error)
 
     async def __call__(self, request: Request):
 
-        credentials = HTTPAuthorizationCredentials = await super(JWTBearer, self).__call__(request)
-        
+        credentials: HTTPAuthorizationCredentials = await super(JWTBearer, self).__call__(request)
+
         if credentials:
             if not credentials.scheme == "Bearer":
                 raise HTTPException(status_code=403, detail="Invalid or Expired token!")
@@ -26,13 +20,13 @@ class JWTBearer(HTTPBearer):
         else:
             raise HTTPException(status_code=403, detail="Invalid or Expired token!")
 
+    @staticmethod
+    def verify_jwt(jwt_token: str) -> bool:
 
-    def verify_jwt(self, jwtoken: str):
+        is_token_valid: bool = False
 
-        is_token_valid : bool = False
+        payload: dict = decode_jwt(jwt_token)
 
-        payload : dict = decodeJWT(jwtoken)
-        
         if payload:
             is_token_valid = True
 
