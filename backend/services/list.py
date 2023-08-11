@@ -1,12 +1,19 @@
-from models.list import TodoList
+from models.list import TodoList as TodoListModel
+from schemas.list import TodoList
 from config.database import Session
 
 
 class ListService:
 
     def __init__(self, database: Session) -> None:
-        self.database: Session = database
+        self.db: Session = database
 
     def get_lists(self):
-        lists = self.database.query(TodoList).all()
+        lists = self.db.query(TodoListModel).all()
         return lists
+
+    def create_list(self, todo_list: TodoList):
+        new_todo_list = TodoListModel(**todo_list.model_dump())
+        self.db.add(new_todo_list)
+        self.db.commit()
+

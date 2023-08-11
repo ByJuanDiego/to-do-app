@@ -15,6 +15,8 @@ from sqlalchemy.orm import (
     relationship
 )
 
+from models.todo import Todo
+
 
 class TodoList(Base):
     __tablename__ = "lists"

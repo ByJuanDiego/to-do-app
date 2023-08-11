@@ -14,6 +14,8 @@ from sqlalchemy.orm import (
     relationship
 )
 
+from models.list import TodoList
+
 
 class User(Base):
     __tablename__ = "users"

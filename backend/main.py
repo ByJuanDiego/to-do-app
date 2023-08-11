@@ -1,3 +1,5 @@
+import uvicorn
+
 from fastapi import FastAPI
 
 from middlewares.error_handler import ErrorHandler
@@ -17,3 +19,6 @@ app.include_router(list_router)
 app.include_router(todo_router)
 
 # Base.metadata.create_all(bind=engine)
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="127.0.0.1", port=8000)
