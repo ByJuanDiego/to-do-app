@@ -4,6 +4,8 @@ import time
 import os
 from dotenv import load_dotenv
 
+import datetime
+
 load_dotenv()
 
 JWT_KEY = os.environ["KEY"]
@@ -13,7 +15,8 @@ JWT_EXPIRY_TIME = int(os.environ["EXPIRY_TIME"])
 
 def token_response(token: str) -> dict:
     return {
-        "access-token": token
+        "access-token": token,
+        "expires": str(datetime.datetime.now() + datetime.timedelta(seconds=JWT_EXPIRY_TIME))
     }
 
 

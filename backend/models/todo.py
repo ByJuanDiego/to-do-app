@@ -5,7 +5,8 @@ from sqlalchemy import (
     String,
     TIMESTAMP,
     Boolean,
-    ForeignKey
+    ForeignKey,
+    func
 )
 
 from sqlalchemy.orm import (
@@ -27,4 +28,4 @@ class Todo(Base):
 
     completed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
-    registration_time: Mapped[datetime.datetime] = mapped_column(TIMESTAMP, nullable=False)
+    registration_time: Mapped[datetime.datetime] = mapped_column(TIMESTAMP, nullable=False, server_default=func.now())

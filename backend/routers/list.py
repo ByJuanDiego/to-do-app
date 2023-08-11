@@ -14,7 +14,7 @@ from services.list import ListService
 list_router = APIRouter()
 
 
-@list_router.get('/list', tags=['list'], response_model=List[TodoList], status_code=200,
+@list_router.get(path='/list', tags=['list'], response_model=List[TodoList], status_code=200,
                  dependencies=[Depends(JWTBearer())])
 def get_lists() -> JSONResponse:
 
@@ -24,7 +24,7 @@ def get_lists() -> JSONResponse:
     return JSONResponse(status_code=200, content=jsonable_encoder(result))
 
 
-@list_router.post('/list', tags=['list'], response_model=TodoList, status_code=201,
+@list_router.post(path='/list', tags=['list'], response_model=TodoList, status_code=201,
                   dependencies=[Depends(JWTBearer())])
 def create_list(todo_list: TodoList) -> JSONResponse:
 
