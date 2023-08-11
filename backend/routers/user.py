@@ -1,13 +1,16 @@
-from typing import Dict
-
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
+from typing import Dict
+
 from config.database import Session
+
 from utils.jwt_handler import sign_jwt
 
 from schemas.user import User
+
 from services.user import UserService
+
 
 user_router = APIRouter()
 

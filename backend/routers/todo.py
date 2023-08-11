@@ -6,11 +6,11 @@ from typing import List
 
 from config.database import Session
 
-from services.todo import TodoService
-
 from middlewares.auth_handler import JWTBearer
 
 from schemas.todo import Todo
+
+from services.todo import TodoService
 
 
 todo_router = APIRouter()

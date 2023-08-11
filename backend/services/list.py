@@ -1,6 +1,8 @@
-from models.list import TodoList as TodoListModel
-from schemas.list import TodoList
 from config.database import Session
+
+from models.list import TodoList as TodoListModel
+
+from schemas.list import TodoList
 
 
 class ListService:

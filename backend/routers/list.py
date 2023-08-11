@@ -1,13 +1,15 @@
+from fastapi import Depends, APIRouter
+from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
+
 from typing import List
 
-from fastapi import Depends, APIRouter
-from fastapi.encoders import jsonable_encoder
-from fastapi.responses import JSONResponse
-
 from config.database import Session
+
 from middlewares.auth_handler import JWTBearer
 
 from schemas.list import TodoList
+
 from services.list import ListService
 
 
