@@ -15,7 +15,7 @@ from services.user import UserService
 user_router = APIRouter()
 
 
-@user_router.post(path='/user/signup', tags=['user'], response_model=User, status_code=201)
+@user_router.post(path="/users/signup", tags=["user"], response_model=User, status_code=201)
 def user_signup(user: User) -> JSONResponse:
     db = Session()
 
@@ -30,11 +30,10 @@ def user_signup(user: User) -> JSONResponse:
         return JSONResponse(status_code=201, content=user.model_dump())
 
 
-@user_router.post(path='/user/login', tags=['user'], response_model=Dict[str, str], status_code=200)
+@user_router.post(path="/users/login", tags=["user"], response_model=Dict[str, str], status_code=200)
 def user_login(user: User) -> JSONResponse:
     db = Session()
     if not UserService(db).validate_login(user.username, user.password_hash):
         return JSONResponse(status_code=404, content={"error": "Invalid username or password!"})
 
     return JSONResponse(status_code=200, content=sign_jwt(user.username))
-

@@ -16,7 +16,7 @@ from services.todo import TodoService
 todo_router = APIRouter()
 
 
-@todo_router.get(path="/todo", tags=["todo"], response_model=List[Todo], status_code=200,
+@todo_router.get(path="/todos", tags=["todo"], response_model=List[Todo], status_code=200,
                  dependencies=[Depends(JWTBearer())])
 def get_todos() -> JSONResponse:
     db = Session()
@@ -25,7 +25,15 @@ def get_todos() -> JSONResponse:
     return JSONResponse(status_code=200, content=jsonable_encoder(result))
 
 
-@todo_router.get(path="/todo/{todo_id}", tags=["todo"], response_model=Todo, status_code=200,
+@todo_router.post(path="/todos", tags=["todo"], response_model=Todo, status_code=201,
+                  dependencies=[Depends(JWTBearer())])
+def create_todo(todo: Todo) -> JSONResponse:
+    db = Session()
+    TodoService(db).create_todo(todo)
+    return JSONResponse(status_code=201, content=todo.model_dump())
+
+
+@todo_router.get(path="/todos/{todo_id}", tags=["todo"], response_model=Todo, status_code=200,
                  dependencies=[Depends(JWTBearer())])
 def get_todo_by_id(todo_id: int = Path(ge=1)) -> JSONResponse:
     db = Session()
@@ -35,12 +43,3 @@ def get_todo_by_id(todo_id: int = Path(ge=1)) -> JSONResponse:
         return JSONResponse(status_code=404, content={"error": "Oops, to-do not found!"})
 
     return JSONResponse(status_code=200, content=Todo.model_validate(result).model_dump())
-
-
-@todo_router.post(path="/todo", tags=["todo"], response_model=Todo, status_code=201,
-                  dependencies=[Depends(JWTBearer())])
-def create_todo(todo: Todo) -> JSONResponse:
-    db = Session()
-    TodoService(db).create_todo(todo)
-    return JSONResponse(status_code=201, content=todo.model_dump())
-
