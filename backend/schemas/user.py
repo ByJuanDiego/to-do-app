@@ -1,9 +1,13 @@
 from pydantic import BaseModel, Field, EmailStr, ConfigDict
-from typing import Optional
 
 
 class User(BaseModel):
+    username: str = Field(max_length=100)
 
+    password_hash: str = Field(max_length=255)
+
+
+class UserLogin(User):
     model_config = ConfigDict(json_schema_extra={
         "examples": [
             {
@@ -13,10 +17,19 @@ class User(BaseModel):
         ]
     })
 
-    username: str = Field(max_length=100)
 
-    password_hash: str = Field(max_length=100)
+class UserRegistration(User):
+    model_config = ConfigDict(json_schema_extra={
+        "examples": [
+            {
+                "username": "ByJuanDiego",
+                "password_hash": "password",
+                "email": "juancaspadi@gmail.com",
+                "name": "Juan Diego"
+            }
+        ]
+    })
 
-    email: Optional[EmailStr] = Field(max_length=100, default=None)
+    email: EmailStr = Field(max_length=100)
 
-    name: Optional[str] = Field(max_length=100, default=None)
+    name: str = Field(max_length=100)

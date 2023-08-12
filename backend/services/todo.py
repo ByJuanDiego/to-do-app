@@ -12,7 +12,7 @@ class TodoService:
         todos = self.db.query(TodoModel).all()
         return todos
 
-    def get_todo_by_id(self, todo_id: int):
+    def get_todo_by_id(self, todo_id: int) -> TodoModel | None:
         todo = self.db.query(TodoModel).get(todo_id)
         return todo
 
@@ -21,3 +21,6 @@ class TodoService:
         self.db.add(new_todo)
         self.db.commit()
 
+    @staticmethod
+    def exists_todo(todo_model: TodoModel | None) -> bool:
+        return todo_model is not None
