@@ -43,7 +43,7 @@ def user_signup(user: UserRegistration) -> JSONResponse:
     service.create_user(user)
     return JSONResponse(
         status_code=201,
-        content=user.model_dump()
+        content=user.model_dump(exclude={"password_hash"})
     )
 
 
@@ -63,7 +63,7 @@ def user_login(user: UserLogin) -> JSONResponse:
             }
         )
 
-    if not service.validate_credentials(user.username, user.password_hash):
+    if not service.validate_credentials(user.username, user.password.get_secret_value()):
         raise HTTPException(
             status_code=403,
             detail="Invalid username or password!",

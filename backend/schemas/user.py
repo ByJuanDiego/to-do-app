@@ -1,35 +1,37 @@
-from pydantic import BaseModel, Field, EmailStr, ConfigDict
+from pydantic import BaseModel, Field, EmailStr, ConfigDict, SecretStr
 
 
 class User(BaseModel):
     username: str = Field(max_length=100)
 
-    password_hash: str = Field(max_length=255)
-
 
 class UserLogin(User):
+    password: SecretStr = Field(max_length=255)
+
     model_config = ConfigDict(json_schema_extra={
         "examples": [
             {
                 "username": "ByJuanDiego",
-                "password_hash": "password"
+                "password": "password"
             }
         ]
     })
 
 
 class UserRegistration(User):
-    model_config = ConfigDict(json_schema_extra={
-        "examples": [
-            {
-                "username": "ByJuanDiego",
-                "password_hash": "password",
-                "email": "juancaspadi@gmail.com",
-                "name": "Juan Diego"
-            }
-        ]
-    })
+    password_hash: SecretStr = Field(max_length=255, alias="password")
 
     email: EmailStr = Field(max_length=100)
 
     name: str = Field(max_length=100)
+
+    model_config = ConfigDict(json_schema_extra={
+        "examples": [
+            {
+                "name": "Juan Diego",
+                "username": "ByJuanDiego",
+                "email": "juancaspadi@gmail.com",
+                "password": "password"
+            }
+        ]
+    })
