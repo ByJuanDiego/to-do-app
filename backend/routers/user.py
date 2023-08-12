@@ -1,15 +1,19 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends, Path
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 
-from typing import Dict
+from typing import Dict, List
 
 from config.database import Session
 
 from utils.jwt_handler import sign_jwt
 
 from schemas.user import UserLogin, UserRegistration
+from schemas.list import TodoList
 
 from services.user import UserService
+
+from middlewares.auth_handler import JWTBearer
 
 
 user_router = APIRouter()
@@ -73,3 +77,33 @@ def user_login(user: UserLogin) -> JSONResponse:
         )
 
     return JSONResponse(status_code=200, content=sign_jwt(user.username))
+
+
+@user_router.get(path="/users/{user_id}/lists", tags=["user"], response_model=List[TodoList],
+                 dependencies=[Depends(JWTBearer())])
+def get_lists_for_user(user_id: str = Path(max_length=100)):
+    db = Session()
+    service = UserService(db)
+
+    user = service.get_user_by_username(user_id)
+
+    if not service.exists_user(user):
+        raise HTTPException(
+            status_code=404,
+            detail=f"Not found user with username {user_id}!",
+            headers={
+                "Username-Conflict": user_id
+            }
+        )
+
+    if not service.has_any_list(user):
+        raise HTTPException(
+            status_code=404,
+            detail=f"Not found any list for user {user_id}!",
+            headers={
+                "Username-Conflict": user_id
+            }
+        )
+
+    lists: List[TodoList] = service.get_lists(user)
+    return JSONResponse(status_code=200, content=jsonable_encoder(lists))

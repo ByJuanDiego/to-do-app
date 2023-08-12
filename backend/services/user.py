@@ -1,5 +1,10 @@
+from typing import List
+
 from models.user import User as UserModel
+from models.list import List as ListModel
+
 from schemas.user import UserRegistration
+from schemas.list import TodoList
 
 from config.database import Session
 
@@ -17,6 +22,18 @@ class UserService:
     @staticmethod
     def exists_user(user: UserModel | None) -> bool:
         return user is not None
+
+    @staticmethod
+    def has_any_list(user: UserModel | None) -> bool:
+        if user is None:
+            return False
+        return len(user.lists) > 0
+
+    @staticmethod
+    def get_lists(user: UserModel | None) -> List[TodoList]:
+        if user is None:
+            return []
+        return user.lists
 
     def exists_user_email(self, email: str) -> bool:
         user = self.db.query(UserModel).filter_by(email=email).first()
@@ -39,3 +56,4 @@ class UserService:
         new_user = UserModel(**user.model_dump())
         self.db.add(new_user)
         self.db.commit()
+

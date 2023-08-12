@@ -4,6 +4,7 @@ import datetime
 
 from sqlalchemy import (
     String,
+    Boolean,
     TIMESTAMP,
     func
 )
@@ -27,6 +28,8 @@ class User(Base):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
 
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+
+    active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     registration_time: Mapped[datetime.datetime] = mapped_column(TIMESTAMP, server_default=func.now(), nullable=False)
 
