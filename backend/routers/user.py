@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from typing import Dict, List, Annotated
 
 
-from config.database import Session
+from config.database import get_db, Session
 
 from utils.jwt_handler import sign_jwt
 
@@ -23,8 +23,7 @@ user_router = APIRouter()
 
 @user_router.post(path="/users/signup", tags=["user"], response_model=UserRegistration,
                   status_code=status.HTTP_201_CREATED)
-def user_signup(user: UserRegistration) -> JSONResponse:
-    db = Session()
+def user_signup(user: UserRegistration, db: Annotated[Session, Depends(get_db)]) -> JSONResponse:
     service = UserService(db)
 
     result = service.get_user_by_username(user.username)
@@ -52,8 +51,8 @@ def user_signup(user: UserRegistration) -> JSONResponse:
 
 
 @user_router.post(path="/users/login", tags=["user"], response_model=Dict[str, str], status_code=status.HTTP_200_OK)
-def user_login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> JSONResponse:
-    db = Session()
+def user_login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
+               db: Annotated[Session, Depends(get_db)]) -> JSONResponse:
     service = UserService(db)
 
     result = service.get_user_by_username(form_data.username)
@@ -82,8 +81,8 @@ def user_login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> JS
 @user_router.get(path="/users/{user_id}/lists", tags=["user"], response_model=List[TodoList],
                  dependencies=[Depends(jwt_bearer)])
 def get_lists_for_user(user_id: Annotated[str, Path(max_length=100)],
-                       current_user: Annotated[User, Depends(oauth2_bearer)]) -> JSONResponse:
-    db = Session()
+                       current_user: Annotated[User, Depends(oauth2_bearer)],
+                       db: Annotated[Session, Depends(get_db)]) -> JSONResponse:
     service = UserService(db)
 
     user = service.get_user_by_username(user_id)

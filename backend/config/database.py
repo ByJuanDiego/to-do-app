@@ -21,7 +21,7 @@ Session = sessionmaker(bind=engine)
 Base = declarative_base()
 
 
-def get_db():
+def get_db() -> Session:
     db = Session()
     try:
         yield db
@@ -29,5 +29,5 @@ def get_db():
         db.close()
 
 
-def create_data_base_models():
+def create_data_base_models() -> None:
     Base.metadata.create_all(bind=engine)
