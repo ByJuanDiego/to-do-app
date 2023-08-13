@@ -1,7 +1,7 @@
+from fastapi import Request, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from fastapi import Request, HTTPException
 
-from utils.jwt_handler import decode_jwt
+from utils.jwt_handler import verify_jwt
 
 
 class JWTBearer(HTTPBearer):
@@ -15,21 +15,9 @@ class JWTBearer(HTTPBearer):
 
         if credentials:
             if not credentials.scheme == "Bearer":
-                raise HTTPException(status_code=403, detail="Invalid authentication scheme.")
-            if not JWTBearer.verify_jwt(credentials.credentials):
-                raise HTTPException(status_code=403, detail="Invalid or Expired token!")
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid authentication scheme.")
+            if not verify_jwt(credentials.credentials):
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid or Expired token!")
             return credentials.credentials
         else:
-            raise HTTPException(status_code=403, detail="Invalid authorization code.")
-
-    @staticmethod
-    def verify_jwt(jwt_token: str) -> bool:
-
-        is_token_valid: bool = False
-
-        payload: dict = decode_jwt(jwt_token)
-
-        if payload:
-            is_token_valid = True
-
-        return is_token_valid
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid authorization code.")

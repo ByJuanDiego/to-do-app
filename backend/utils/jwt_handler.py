@@ -15,8 +15,8 @@ JWT_EXPIRY_TIME = int(os.environ["EXPIRY_TIME"])
 
 def token_response(token: str) -> dict:
     return {
-        "access-token": token,
-        "expires": str(datetime.datetime.now() + datetime.timedelta(seconds=JWT_EXPIRY_TIME))
+        "access_token": token,
+        "token_type": "bearer"
     }
 
 
@@ -38,3 +38,14 @@ def decode_jwt(token: str) -> dict:
         return {}
     except KeyError:
         return {}
+
+
+def verify_jwt(jwt_token: str) -> bool:
+    is_token_valid: bool = False
+
+    payload: dict = decode_jwt(jwt_token)
+
+    if payload:
+        is_token_valid = True
+
+    return is_token_valid

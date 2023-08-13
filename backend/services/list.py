@@ -13,6 +13,9 @@ class ListService:
     def __init__(self, database: Session) -> None:
         self.db: Session = database
 
+    def __del__(self):
+        self.db.close()
+
     @staticmethod
     def exists_list(todo_list: TodoListModel | None) -> bool:
         return todo_list is not None

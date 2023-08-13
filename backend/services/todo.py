@@ -8,6 +8,9 @@ class TodoService:
     def __init__(self, db: Session):
         self.db: Session = db
 
+    def __del__(self):
+        self.db.close()
+
     def get_todos(self):
         todos = self.db.query(TodoModel).all()
         return todos

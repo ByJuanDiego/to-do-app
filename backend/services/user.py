@@ -1,7 +1,6 @@
 from typing import List
 
 from models.user import User as UserModel
-from models.list import List as ListModel
 
 from schemas.user import UserRegistration
 from schemas.list import TodoList
@@ -14,6 +13,9 @@ from utils.hash_handler import get_hash, verify_password
 class UserService:
     def __init__(self, db: Session):
         self.db: Session = db
+
+    def __del__(self):
+        self.db.close()
 
     def get_user_by_username(self, username: str) -> UserModel | None:
         user = self.db.query(UserModel).get(username)
@@ -28,6 +30,10 @@ class UserService:
         if user is None:
             return False
         return len(user.lists) > 0
+
+    @staticmethod
+    def has_same_username(username1: str, username2: str) -> bool:
+        return username1 == username2
 
     @staticmethod
     def get_lists(user: UserModel | None) -> List[TodoList]:
@@ -56,4 +62,3 @@ class UserService:
         new_user = UserModel(**user.model_dump())
         self.db.add(new_user)
         self.db.commit()
-
