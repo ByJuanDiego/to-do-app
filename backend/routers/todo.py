@@ -18,7 +18,7 @@ todo_router = APIRouter()
 
 @todo_router.get(path="/todos", tags=["todo"], response_model=List[Todo], status_code=200,
                  dependencies=[Depends(jwt_bearer)])
-def get_todos(db: Annotated[Session, get_db]) -> JSONResponse:
+def get_todos(db: Annotated[Session, Depends(get_db)]) -> JSONResponse:
     service = TodoService(db)
 
     todos = service.get_todos()
@@ -31,7 +31,7 @@ def get_todos(db: Annotated[Session, get_db]) -> JSONResponse:
 
 @todo_router.post(path="/todos", tags=["todo"], response_model=Todo, status_code=201,
                   dependencies=[Depends(jwt_bearer)])
-def create_todo(todo: Todo, db: Annotated[Session, get_db]) -> JSONResponse:
+def create_todo(todo: Todo, db: Annotated[Session, Depends(get_db)]) -> JSONResponse:
     service = TodoService(db)
 
     service.create_todo(todo)
@@ -44,7 +44,7 @@ def create_todo(todo: Todo, db: Annotated[Session, get_db]) -> JSONResponse:
 
 @todo_router.get(path="/todos/{todo_id}", tags=["todo"], response_model=Todo, status_code=200,
                  dependencies=[Depends(jwt_bearer)])
-def get_todo_by_id(todo_id: Annotated[int, Path(ge=1)], db: Annotated[Session, get_db]) -> JSONResponse:
+def get_todo_by_id(todo_id: Annotated[int, Path(ge=1)], db: Annotated[Session, Depends(get_db)]) -> JSONResponse:
     service = TodoService(db)
 
     todo = service.get_todo_by_id(todo_id)

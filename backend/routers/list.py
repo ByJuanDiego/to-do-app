@@ -20,7 +20,7 @@ list_router = APIRouter()
 
 @list_router.get(path="/lists", tags=["list"], response_model=List[TodoList], status_code=200,
                  dependencies=[Depends(jwt_bearer)])
-def get_lists(db: Annotated[Session, get_db]) -> JSONResponse:
+def get_lists(db: Annotated[Session, Depends(get_db)]) -> JSONResponse:
     service = ListService(db)
 
     todo_lists = service.get_lists()
@@ -36,7 +36,7 @@ def get_lists(db: Annotated[Session, get_db]) -> JSONResponse:
 
 @list_router.post(path="/lists", tags=["list"], response_model=TodoList, status_code=201,
                   dependencies=[Depends(jwt_bearer)])
-def create_list(todo_list: TodoList, db: Annotated[Session, get_db]) -> JSONResponse:
+def create_list(todo_list: TodoList, db: Annotated[Session, Depends(get_db)]) -> JSONResponse:
     user_service = UserService(db)
 
     user = user_service.get_user_by_username(todo_list.user_id)
@@ -70,7 +70,7 @@ def create_list(todo_list: TodoList, db: Annotated[Session, get_db]) -> JSONResp
 
 @list_router.get(path="/list/{list_id}", tags=["list"], response_model=TodoList, status_code=200,
                  dependencies=[Depends(jwt_bearer)])
-def get_list_by_id(list_id: Annotated[int, Path(ge=1)], db: Annotated[Session, get_db]) -> JSONResponse:
+def get_list_by_id(list_id: Annotated[int, Path(ge=1)], db: Annotated[Session, Depends(get_db)]) -> JSONResponse:
     service = ListService(db)
 
     todo_list = service.get_list_by_id(list_id)
@@ -89,7 +89,7 @@ def get_list_by_id(list_id: Annotated[int, Path(ge=1)], db: Annotated[Session, g
 
 @list_router.get(path="/lists/{list_id}/todos", tags=["list"], response_model=List[Todo],
                  status_code=status.HTTP_200_OK, dependencies=[Depends(jwt_bearer)])
-def get_todos_for_list(list_id: Annotated[int, Path(ge=1)], db: Annotated[Session, get_db]):
+def get_todos_for_list(list_id: Annotated[int, Path(ge=1)], db: Annotated[Session, Depends(get_db)]):
     service = ListService(db)
 
     todo_list = service.get_list_by_id(list_id)
