@@ -27,3 +27,7 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def create_data_base_models():
+    Base.metadata.create_all(bind=engine)
