@@ -1,52 +1,24 @@
 from fastapi import APIRouter, HTTPException, Depends, Path, status
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm
 
 from typing import Dict, List, Annotated
 
-from jwt import DecodeError
 
-from config.database import Session, get_db
+from config.database import Session
 
-from utils.jwt_handler import sign_jwt, decode_jwt
+from utils.jwt_handler import sign_jwt
 
-from schemas.user import UserLogin, UserRegistration, User
+from schemas.user import UserRegistration, User
 from schemas.list import TodoList
 
 from services.user import UserService
 
-from middlewares.auth_handler import JWTBearer
+from middlewares.auth_handler import oauth2_bearer, jwt_bearer
 
 
 user_router = APIRouter()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/login")
-
-
-def get_current_user(token: Annotated[str, Depends(oauth2_scheme)],
-                     db: Annotated[Session, Depends(get_db)]) -> UserLogin:
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-
-    try:
-        payload: dict = decode_jwt(token)
-        username: str = payload.get("username")
-        if username is None:
-            raise credentials_exception
-
-    except DecodeError:
-        raise credentials_exception
-
-    service = UserService(db)
-    user = service.get_user_by_username(username)
-
-    if not service.exists_user(user):
-        raise credentials_exception
-
-    return user
 
 
 @user_router.post(path="/users/signup", tags=["user"], response_model=UserRegistration,
@@ -88,7 +60,7 @@ def user_login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> JS
 
     if not service.exists_user(result):
         raise HTTPException(
-            status_code=403,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Not found user with username {form_data.username}!",
             headers={
                 "Username-Conflict": form_data.username
@@ -97,7 +69,7 @@ def user_login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> JS
 
     if not service.validate_credentials(form_data.username, form_data.password):
         raise HTTPException(
-            status_code=403,
+            status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid username or password!",
             headers={
                 "Username-Conflict": form_data.username
@@ -108,9 +80,9 @@ def user_login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]) -> JS
 
 
 @user_router.get(path="/users/{user_id}/lists", tags=["user"], response_model=List[TodoList],
-                 dependencies=[Depends(JWTBearer())])
+                 dependencies=[Depends(jwt_bearer)])
 def get_lists_for_user(user_id: Annotated[str, Path(max_length=100)],
-                       current_user: Annotated[User, Depends(get_current_user)]) -> JSONResponse:
+                       current_user: Annotated[User, Depends(oauth2_bearer)]) -> JSONResponse:
     db = Session()
     service = UserService(db)
 

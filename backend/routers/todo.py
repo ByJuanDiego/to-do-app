@@ -2,11 +2,11 @@ from fastapi import Depends, APIRouter, Path, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
-from typing import List
+from typing import List, Annotated
 
 from config.database import Session
 
-from middlewares.auth_handler import JWTBearer
+from middlewares.auth_handler import jwt_bearer
 
 from schemas.todo import Todo
 
@@ -17,7 +17,7 @@ todo_router = APIRouter()
 
 
 @todo_router.get(path="/todos", tags=["todo"], response_model=List[Todo], status_code=200,
-                 dependencies=[Depends(JWTBearer())])
+                 dependencies=[Depends(jwt_bearer)])
 def get_todos() -> JSONResponse:
     db = Session()
     service = TodoService(db)
@@ -31,7 +31,7 @@ def get_todos() -> JSONResponse:
 
 
 @todo_router.post(path="/todos", tags=["todo"], response_model=Todo, status_code=201,
-                  dependencies=[Depends(JWTBearer())])
+                  dependencies=[Depends(jwt_bearer)])
 def create_todo(todo: Todo) -> JSONResponse:
     db = Session()
     service = TodoService(db)
@@ -45,8 +45,8 @@ def create_todo(todo: Todo) -> JSONResponse:
 
 
 @todo_router.get(path="/todos/{todo_id}", tags=["todo"], response_model=Todo, status_code=200,
-                 dependencies=[Depends(JWTBearer())])
-def get_todo_by_id(todo_id: int = Path(ge=1)) -> JSONResponse:
+                 dependencies=[Depends(jwt_bearer)])
+def get_todo_by_id(todo_id: Annotated[int, Path(ge=1)]) -> JSONResponse:
     db = Session()
     service = TodoService(db)
 

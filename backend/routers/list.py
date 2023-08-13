@@ -1,12 +1,12 @@
-from fastapi import Depends, APIRouter, Path, HTTPException
+from fastapi import Depends, APIRouter, Path, HTTPException, status
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
-from typing import List
+from typing import List, Annotated
 
 from config.database import Session
 
-from middlewares.auth_handler import JWTBearer
+from middlewares.auth_handler import jwt_bearer, oauth2_bearer
 
 from schemas.todo import Todo
 from schemas.list import TodoList
@@ -19,7 +19,7 @@ list_router = APIRouter()
 
 
 @list_router.get(path="/lists", tags=["list"], response_model=List[TodoList], status_code=200,
-                 dependencies=[Depends(JWTBearer())])
+                 dependencies=[Depends(jwt_bearer)])
 def get_lists() -> JSONResponse:
     db = Session()
     service = ListService(db)
@@ -28,15 +28,15 @@ def get_lists() -> JSONResponse:
 
     if not service.exists_any_list(todo_lists):
         raise HTTPException(
-            status_code=404,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Not list was found!",
         )
 
-    return JSONResponse(status_code=200, content=jsonable_encoder(todo_lists))
+    return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(todo_lists))
 
 
 @list_router.post(path="/lists", tags=["list"], response_model=TodoList, status_code=201,
-                  dependencies=[Depends(JWTBearer())])
+                  dependencies=[Depends(jwt_bearer)])
 def create_list(todo_list: TodoList) -> JSONResponse:
     db = Session()
     user_service = UserService(db)
@@ -45,7 +45,7 @@ def create_list(todo_list: TodoList) -> JSONResponse:
 
     if not user_service.exists_user(user):
         raise HTTPException(
-            status_code=404,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Not found user with username {todo_list.user_id}!",
             headers={
                 "Username-Conflict": todo_list.user_id
@@ -58,7 +58,7 @@ def create_list(todo_list: TodoList) -> JSONResponse:
 
     if list_service.exists_list(result):
         raise HTTPException(
-            status_code=403,
+            status_code=status.HTTP_409_CONFLICT,
             detail=f"A list with name {todo_list.name} already exists!",
             headers={
                 "Name-Conflict": todo_list.name
@@ -67,12 +67,12 @@ def create_list(todo_list: TodoList) -> JSONResponse:
 
     list_service.create_list(todo_list)
 
-    return JSONResponse(status_code=201, content=todo_list.model_dump())
+    return JSONResponse(status_code=status.HTTP_201_CREATED, content=todo_list.model_dump())
 
 
 @list_router.get(path="/list/{list_id}", tags=["list"], response_model=TodoList, status_code=200,
-                 dependencies=[Depends(JWTBearer())])
-def get_list_by_id(list_id: int = Path(ge=1)) -> JSONResponse:
+                 dependencies=[Depends(jwt_bearer)])
+def get_list_by_id(list_id: Annotated[int, Path(ge=1)]) -> JSONResponse:
     db = Session()
     service = ListService(db)
 
@@ -80,19 +80,19 @@ def get_list_by_id(list_id: int = Path(ge=1)) -> JSONResponse:
 
     if not service.exists_list(todo_list):
         raise HTTPException(
-            status_code=404,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Not found list with id {list_id}!",
             headers={
                 "Id-Conflict": str(list_id)
             }
         )
 
-    return JSONResponse(status_code=200, content=todo_list)
+    return JSONResponse(status_code=status.HTTP_200_OK, content=todo_list)
 
 
-@list_router.get(path="/lists/{list_id}/todos", tags=["list"], response_model=List[Todo], status_code=200,
-                 dependencies=[Depends(JWTBearer())])
-def get_todos_for_list(list_id: int = Path(ge=1)):
+@list_router.get(path="/lists/{list_id}/todos", tags=["list"], response_model=List[Todo],
+                 status_code=status.HTTP_200_OK, dependencies=[Depends(jwt_bearer)])
+def get_todos_for_list(list_id: Annotated[int, Path(ge=1)]):
     db = Session()
     service = ListService(db)
 
@@ -100,7 +100,7 @@ def get_todos_for_list(list_id: int = Path(ge=1)):
 
     if not service.exists_list(todo_list):
         raise HTTPException(
-            status_code=404,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Not found list with id {list_id}!",
             headers={
                 "Id-Conflict": str(list_id)
@@ -109,7 +109,7 @@ def get_todos_for_list(list_id: int = Path(ge=1)):
 
     if not service.has_any_todo(todo_list):
         raise HTTPException(
-            status_code=404,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail=f"No todo found in list with id {list_id}!",
             headers={
                 "Id-Conflict": str(list_id)
@@ -118,4 +118,4 @@ def get_todos_for_list(list_id: int = Path(ge=1)):
 
     result = service.get_todos(list_id)
 
-    return JSONResponse(status_code=200, content=jsonable_encoder(result))
+    return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(result))
