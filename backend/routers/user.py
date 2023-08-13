@@ -45,10 +45,7 @@ def user_signup(user: UserRegistration) -> JSONResponse:
         )
 
     service.create_user(user)
-    return JSONResponse(
-        status_code=201,
-        content=user.model_dump(exclude={"password_hash"})
-    )
+    return JSONResponse(status_code=201, content=user.model_dump(exclude={"password_hash"}))
 
 
 @user_router.post(path="/users/login", tags=["user"], response_model=Dict[str, str], status_code=200)
@@ -81,7 +78,7 @@ def user_login(user: UserLogin) -> JSONResponse:
 
 @user_router.get(path="/users/{user_id}/lists", tags=["user"], response_model=List[TodoList],
                  dependencies=[Depends(JWTBearer())])
-def get_lists_for_user(user_id: str = Path(max_length=100)):
+def get_lists_for_user(user_id: str = Path(max_length=100)) -> JSONResponse:
     db = Session()
     service = UserService(db)
 
