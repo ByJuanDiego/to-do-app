@@ -12,7 +12,6 @@ from schemas.todo import Todo
 from schemas.user import User
 
 from services.todo import TodoService
-from services.list import ListService
 from services.user import UserService
 
 
@@ -64,12 +63,8 @@ def get_todo_by_id(todo_id: Annotated[int, Path(ge=1)],
             }
         )
 
-    # FIXME: Change this ugly code to a backref approach
-    list_service = ListService(db)
-    todo_list = list_service.get_list_by_id(todo.list_id)
-
     user_service = UserService(db)
-    user = user_service.get_user_by_username(todo_list.user_id)
+    user = todo.todo_list.user
 
     if not user_service.has_same_username(current_user.username, user.username):
         raise HTTPException(

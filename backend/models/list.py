@@ -15,8 +15,6 @@ from sqlalchemy.orm import (
     relationship
 )
 
-from models.todo import Todo
-
 
 class TodoList(Base):
     __tablename__ = "lists"
@@ -29,4 +27,6 @@ class TodoList(Base):
 
     registration_time: Mapped[datetime.datetime] = mapped_column(TIMESTAMP, nullable=False, server_default=func.now())
 
-    todos: Mapped[List["Todo"]] = relationship()
+    user: Mapped["User"] = relationship(argument="User", back_populates="lists")
+
+    todos: Mapped[List["Todo"]] = relationship(back_populates="todo_list")

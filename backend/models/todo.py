@@ -11,7 +11,8 @@ from sqlalchemy import (
 
 from sqlalchemy.orm import (
     Mapped,
-    mapped_column
+    mapped_column,
+    relationship
 )
 
 
@@ -29,3 +30,5 @@ class Todo(Base):
     completed: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
     registration_time: Mapped[datetime.datetime] = mapped_column(TIMESTAMP, nullable=False, server_default=func.now())
+
+    todo_list: Mapped["TodoList"] = relationship(argument="TodoList", back_populates="todos")
