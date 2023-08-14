@@ -116,3 +116,9 @@ def get_lists_for_user(user_id: Annotated[str, Path(max_length=100)],
 
     lists: List[TodoList] = service.get_lists(user)
     return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(lists))
+
+
+# TODO:
+#   - get    "/users/{user_id}/todos"?
+#   - patch  "/users/{user_id}/change_name"?
+#   - delete "/users/{user_id}"

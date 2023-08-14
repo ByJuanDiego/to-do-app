@@ -1,4 +1,4 @@
-from fastapi import Depends, APIRouter, Path, HTTPException
+from fastapi import Depends, APIRouter, Path, HTTPException, status
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
@@ -6,17 +6,21 @@ from typing import List, Annotated
 
 from config.database import get_db, Session
 
-from middlewares.auth_handler import jwt_bearer
+from middlewares.auth_handler import jwt_bearer, oauth2_bearer
 
 from schemas.todo import Todo
+from schemas.user import User
 
 from services.todo import TodoService
+from services.list import ListService
+from services.user import UserService
 
 
 todo_router = APIRouter()
 
 
-@todo_router.get(path="/todos", tags=["todo"], response_model=List[Todo], status_code=200,
+# TODO: Modify the endpoint to only get to-dos related to a specific list
+@todo_router.get(path="/todos", tags=["todo"], response_model=List[Todo], status_code=status.HTTP_200_OK,
                  dependencies=[Depends(jwt_bearer)])
 def get_todos(db: Annotated[Session, Depends(get_db)]) -> JSONResponse:
     service = TodoService(db)
@@ -24,38 +28,56 @@ def get_todos(db: Annotated[Session, Depends(get_db)]) -> JSONResponse:
     todos = service.get_todos()
 
     return JSONResponse(
-        status_code=200,
+        status_code=status.HTTP_200_OK,
         content=jsonable_encoder(todos)
     )
 
 
-@todo_router.post(path="/todos", tags=["todo"], response_model=Todo, status_code=201,
+@todo_router.post(path="/todos", tags=["todo"], response_model=Todo, status_code=status.HTTP_201_CREATED,
                   dependencies=[Depends(jwt_bearer)])
 def create_todo(todo: Todo, db: Annotated[Session, Depends(get_db)]) -> JSONResponse:
     service = TodoService(db)
-
+    # TODO: Create validation logic (403, 401, 409)
     service.create_todo(todo)
 
     return JSONResponse(
-        status_code=201,
+        status_code=status.HTTP_201_CREATED,
         content=todo.model_dump()
     )
 
 
-@todo_router.get(path="/todos/{todo_id}", tags=["todo"], response_model=Todo, status_code=200,
+@todo_router.get(path="/todos/{todo_id}", tags=["todo"], response_model=Todo, status_code=status.HTTP_200_OK,
                  dependencies=[Depends(jwt_bearer)])
-def get_todo_by_id(todo_id: Annotated[int, Path(ge=1)], db: Annotated[Session, Depends(get_db)]) -> JSONResponse:
-    service = TodoService(db)
+def get_todo_by_id(todo_id: Annotated[int, Path(ge=1)],
+                   current_user: Annotated[User, Depends(oauth2_bearer)],
+                   db: Annotated[Session, Depends(get_db)]) -> JSONResponse:
 
-    todo = service.get_todo_by_id(todo_id)
+    todo_service = TodoService(db)
+    todo = todo_service.get_todo_by_id(todo_id)
 
-    if not service.exists_todo(todo):
+    if not todo_service.exists_todo(todo):
         raise HTTPException(
-            status_code=404,
+            status_code=status.HTTP_404_NOT_FOUND,
             detail=f"No todo found with id {todo_id}!",
             headers={
                 "Id-Conflict": str(todo_id)
             }
         )
 
-    return JSONResponse(status_code=200, content=Todo.model_validate(todo).model_dump())
+    # FIXME: Change this ugly code to a backref approach
+    list_service = ListService(db)
+    todo_list = list_service.get_list_by_id(todo.list_id)
+
+    user_service = UserService(db)
+    user = user_service.get_user_by_username(todo_list.user_id)
+
+    if not user_service.has_same_username(current_user.username, user.username):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"The requested user's username does not match the authenticated user's username. Access denied.",
+            headers={
+                "Username-Conflict": user.username
+            }
+        )
+
+    return JSONResponse(status_code=status.HTTP_200_OK, content=Todo.model_validate(todo).model_dump())
