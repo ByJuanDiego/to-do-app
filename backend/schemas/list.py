@@ -7,7 +7,7 @@ class TodoList(BaseModel):
 
     user_id: str = Field()
 
-    model_config = ConfigDict(json_schema_extra={
+    model_config = ConfigDict(from_attributes=True, json_schema_extra={
         "examples": [
             {
                 "name": "My to-do list",

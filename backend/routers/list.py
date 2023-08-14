@@ -68,7 +68,7 @@ def create_list(todo_list: TodoList, db: Annotated[Session, Depends(get_db)]) ->
     return JSONResponse(status_code=status.HTTP_201_CREATED, content=todo_list.model_dump())
 
 
-@list_router.get(path="/list/{list_id}", tags=["list"], response_model=TodoList, status_code=200,
+@list_router.get(path="/list/{list_id}", tags=["list"], response_model=TodoList, status_code=status.HTTP_200_OK,
                  dependencies=[Depends(jwt_bearer)])
 def get_list_by_id(list_id: Annotated[int, Path(ge=1)], db: Annotated[Session, Depends(get_db)]) -> JSONResponse:
     service = ListService(db)
@@ -84,7 +84,7 @@ def get_list_by_id(list_id: Annotated[int, Path(ge=1)], db: Annotated[Session, D
             }
         )
 
-    return JSONResponse(status_code=status.HTTP_200_OK, content=todo_list)
+    return JSONResponse(status_code=status.HTTP_200_OK, content=TodoList.model_validate(todo_list).model_dump())
 
 
 @list_router.get(path="/lists/{list_id}/todos", tags=["list"], response_model=List[Todo],

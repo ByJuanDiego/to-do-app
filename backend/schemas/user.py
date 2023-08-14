@@ -8,7 +8,7 @@ class User(BaseModel):
 class UserLogin(User):
     password: SecretStr = Field(max_length=255)
 
-    model_config = ConfigDict(json_schema_extra={
+    model_config = ConfigDict(from_attributes=True, json_schema_extra={
         "examples": [
             {
                 "username": "ByJuanDiego",
@@ -25,7 +25,7 @@ class UserRegistration(User):
 
     name: str = Field(max_length=100)
 
-    model_config = ConfigDict(json_schema_extra={
+    model_config = ConfigDict(from_attributes=True, json_schema_extra={
         "examples": [
             {
                 "name": "Juan Diego",
