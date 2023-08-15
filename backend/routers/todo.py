@@ -1,8 +1,7 @@
 from fastapi import Depends, APIRouter, Path, HTTPException, status
 from fastapi.responses import JSONResponse
-from fastapi.encoders import jsonable_encoder
 
-from typing import List, Annotated
+from typing import Annotated
 
 from config.database import get_db, Session
 
@@ -12,37 +11,57 @@ from schemas.todo import Todo
 from schemas.user import User
 
 from services.todo import TodoService
+from services.list import ListService
 from services.user import UserService
 
 
 todo_router = APIRouter()
 
 
-# TODO: Modify the endpoint to only get to-dos related to a specific list
-@todo_router.get(path="/todos", tags=["todo"], response_model=List[Todo], status_code=status.HTTP_200_OK,
-                 dependencies=[Depends(jwt_bearer)])
-def get_todos(db: Annotated[Session, Depends(get_db)]) -> JSONResponse:
-    service = TodoService(db)
-
-    todos = service.get_todos()
-
-    return JSONResponse(
-        status_code=status.HTTP_200_OK,
-        content=jsonable_encoder(todos)
-    )
-
-
 @todo_router.post(path="/todos", tags=["todo"], response_model=Todo, status_code=status.HTTP_201_CREATED,
                   dependencies=[Depends(jwt_bearer)])
-def create_todo(todo: Todo, db: Annotated[Session, Depends(get_db)]) -> JSONResponse:
-    service = TodoService(db)
-    # TODO: Create validation logic (403, 401, 409)
-    service.create_todo(todo)
+def create_todo(todo: Todo,
+                current_user: Annotated[User, Depends(oauth2_bearer)],
+                db: Annotated[Session, Depends(get_db)]) -> JSONResponse:
 
-    return JSONResponse(
-        status_code=status.HTTP_201_CREATED,
-        content=todo.model_dump()
-    )
+    list_service = ListService(db)
+    todo_list = list_service.get_list_by_id(todo.list_id)
+
+    if not list_service.exists_list(todo_list):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No list found with id {todo.list_id}!",
+            headers={
+                "List-Id-Conflict": str(todo.list_id)
+            }
+        )
+
+    user = todo_list.user
+    user_service = UserService(db)
+
+    if not user_service.has_same_username(current_user.username, user.username):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"The requested user's username does not match the authenticated user's username. Access denied.",
+            headers={
+                "Username-Conflict": user.username
+            }
+        )
+
+    todo_service = TodoService(db)
+    result = todo_service.get_todo_by_title_for_list(todo.title, todo.list_id)
+
+    if todo_service.exists_todo(result):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"A to-do with title {todo.title} already exists on list {todo_list.name}!",
+            headers={
+                "Title-Conflict": todo.title
+            }
+        )
+
+    todo_service.create_todo(todo)
+    return JSONResponse(status_code=status.HTTP_201_CREATED, content=todo.model_dump())
 
 
 @todo_router.get(path="/todos/{todo_id}", tags=["todo"], response_model=Todo, status_code=status.HTTP_200_OK,
