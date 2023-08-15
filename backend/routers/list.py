@@ -10,7 +10,7 @@ from middlewares.auth_handler import jwt_bearer, oauth2_bearer
 
 from schemas.user import User
 from schemas.todo import Todo
-from schemas.list import TodoList
+from schemas.list import TodoList, TodoListResponse
 
 from services.list import ListService
 from services.user import UserService
@@ -61,7 +61,7 @@ def create_list(todo_list: TodoList,
     return JSONResponse(status_code=status.HTTP_201_CREATED, content=todo_list.model_dump())
 
 
-@list_router.get(path="/list/{list_id}", tags=["list"], response_model=TodoList, status_code=status.HTTP_200_OK,
+@list_router.get(path="/list/{list_id}", tags=["list"], response_model=TodoListResponse, status_code=status.HTTP_200_OK,
                  dependencies=[Depends(jwt_bearer)])
 def get_list_by_id(list_id: Annotated[int, Path(ge=1)],
                    current_user: Annotated[User, Depends(oauth2_bearer)],
@@ -90,7 +90,8 @@ def get_list_by_id(list_id: Annotated[int, Path(ge=1)],
             }
         )
 
-    return JSONResponse(status_code=status.HTTP_200_OK, content=TodoList.model_validate(todo_list).model_dump())
+    return JSONResponse(status_code=status.HTTP_200_OK,
+                        content=TodoListResponse.model_validate(jsonable_encoder(todo_list)).model_dump())
 
 
 @list_router.get(path="/lists/{list_id}/todos", tags=["list"], response_model=List[Todo],

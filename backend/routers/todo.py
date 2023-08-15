@@ -32,7 +32,7 @@ def create_todo(todo: Todo,
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"No list found with id {todo.list_id}!",
             headers={
-                "List-Id-Conflict": str(todo.list_id)
+                "Id-Conflict": str(todo.list_id)
             }
         )
 
