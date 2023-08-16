@@ -2,6 +2,7 @@ from typing import List
 
 from config.database import Session
 
+from models.user import User as UserModel
 from models.list import TodoList as TodoListModel
 
 from schemas.list import TodoList
@@ -29,6 +30,12 @@ class ListService:
         if todo_list is None:
             return False
         return len(todo_list.todos) > 0
+
+    @staticmethod
+    def get_user_for_list(todo_list: TodoListModel | None) -> UserModel | None:
+        if todo_list is None:
+            return None
+        return todo_list.user
 
     def get_list_by_id(self, list_id: int) -> TodoListModel | None:
         todo_list = self.db.query(TodoListModel).get(list_id)

@@ -19,6 +19,34 @@ from services.user import UserService
 list_router = APIRouter()
 
 
+def authorize_list_access(list_id: int, current_user: User, db: Session):
+    list_service = ListService(db)
+    todo_list = list_service.get_list_by_id(list_id)
+
+    if not list_service.exists_list(todo_list):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Not found list with id {list_id}!",
+            headers={
+                "Id-Conflict": str(list_id)
+            }
+        )
+
+    user_service = UserService(db)
+    user = list_service.get_user_for_list(todo_list)
+
+    if not user_service.has_same_username(current_user.username, user.username):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"The requested user's username does not match the authenticated user's username. Access denied.",
+            headers={
+                "Username-Conflict": user.username
+            }
+        )
+
+    return todo_list
+
+
 @list_router.post(path="/lists", tags=["list"], response_model=TodoList, status_code=status.HTTP_201_CREATED,
                   dependencies=[Depends(jwt_bearer)])
 def create_list(todo_list: TodoList,
@@ -66,29 +94,8 @@ def create_list(todo_list: TodoList,
 def get_list_by_id(list_id: Annotated[int, Path(ge=1)],
                    current_user: Annotated[User, Depends(oauth2_bearer)],
                    db: Annotated[Session, Depends(get_db)]) -> JSONResponse:
-    list_service = ListService(db)
-    todo_list = list_service.get_list_by_id(list_id)
 
-    if not list_service.exists_list(todo_list):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Not found list with id {list_id}!",
-            headers={
-                "Id-Conflict": str(list_id)
-            }
-        )
-
-    user_service = UserService(db)
-    user = todo_list.user
-
-    if not user_service.has_same_username(current_user.username, user.username):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"The requested user's username does not match the authenticated user's username. Access denied.",
-            headers={
-                "Username-Conflict": user.username
-            }
-        )
+    todo_list = authorize_list_access(list_id, current_user, db)
 
     return JSONResponse(status_code=status.HTTP_200_OK,
                         content=TodoListResponse.model_validate(jsonable_encoder(todo_list)).model_dump())
@@ -99,38 +106,10 @@ def get_list_by_id(list_id: Annotated[int, Path(ge=1)],
 def get_todos_for_list(list_id: Annotated[int, Path(ge=1)],
                        current_user: Annotated[User, Depends(oauth2_bearer)],
                        db: Annotated[Session, Depends(get_db)]):
+
+    authorize_list_access(list_id, current_user, db)
+
     list_service = ListService(db)
-    todo_list = list_service.get_list_by_id(list_id)
-
-    if not list_service.exists_list(todo_list):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Not found list with id {list_id}!",
-            headers={
-                "Id-Conflict": str(list_id)
-            }
-        )
-
-    user_service = UserService(db)
-    user = todo_list.user
-
-    if not user_service.has_same_username(current_user.username, user.username):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"The requested user's username does not match the authenticated user's username. Access denied.",
-            headers={
-                "Username-Conflict": user.username
-            }
-        )
-
-    if not list_service.has_any_todo(todo_list):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No todo found in list with id {list_id}!",
-            headers={
-                "Id-Conflict": str(list_id)
-            }
-        )
-
     result = list_service.get_todos(list_id)
+
     return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(result))
