@@ -1,20 +1,19 @@
-import os
-from dotenv import load_dotenv
+from dotenv import dotenv_values
 from sqlalchemy import create_engine
 from sqlalchemy.orm.session import sessionmaker
 from sqlalchemy.orm import declarative_base
 
-load_dotenv()
+secrets = dotenv_values("./config/.env")
 
-user = os.environ['USERNAME']
-password = os.environ['PASSWORD'] 
-host = os.environ['HOST']
-port = os.environ['PORT']
-database = os.environ['DATABASE']
+user = secrets['USERNAME']
+password = secrets['PASSWORD']
+host = secrets['HOST']
+port = secrets['PORT']
+database = secrets['DATABASE']
 
 database_url = f"postgresql://{user}:{password}@{host}:{port}/{database}"
 
-engine = create_engine(database_url, echo=False)
+engine = create_engine(database_url, echo=True)
 
 Session = sessionmaker(bind=engine)
 

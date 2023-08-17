@@ -19,8 +19,7 @@ from services.user import UserService
 list_router = APIRouter()
 
 
-def authorize_list_access(list_id: int, current_user: User, db: Session):
-    list_service = ListService(db)
+def authorize_list_access(list_id: int, current_user: User, list_service: ListService, user_service: UserService):
     todo_list = list_service.get_list_by_id(list_id)
 
     if not list_service.exists_list(todo_list):
@@ -32,7 +31,6 @@ def authorize_list_access(list_id: int, current_user: User, db: Session):
             }
         )
 
-    user_service = UserService(db)
     user = list_service.get_user_for_list(todo_list)
 
     if not user_service.has_same_username(current_user.username, user.username):
@@ -95,7 +93,10 @@ def get_list_by_id(list_id: Annotated[int, Path(ge=1)],
                    current_user: Annotated[User, Depends(oauth2_bearer)],
                    db: Annotated[Session, Depends(get_db)]) -> JSONResponse:
 
-    todo_list = authorize_list_access(list_id, current_user, db)
+    list_service = ListService(db)
+    user_service = UserService(db)
+
+    todo_list = authorize_list_access(list_id, current_user, list_service, user_service)
 
     return JSONResponse(status_code=status.HTTP_200_OK,
                         content=TodoListResponse.model_validate(jsonable_encoder(todo_list)).model_dump())
@@ -107,9 +108,20 @@ def get_todos_for_list(list_id: Annotated[int, Path(ge=1)],
                        current_user: Annotated[User, Depends(oauth2_bearer)],
                        db: Annotated[Session, Depends(get_db)]):
 
-    authorize_list_access(list_id, current_user, db)
-
     list_service = ListService(db)
+    user_service = UserService(db)
+
+    todo_list = authorize_list_access(list_id, current_user, list_service, user_service)
+
+    if not list_service.has_any_todo(todo_list):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Any todo found in list {todo_list.name}",
+            headers={
+                "Id-Conflict": str(todo_list.id)
+            }
+        )
+
     result = list_service.get_todos(list_id)
 
     return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(result))

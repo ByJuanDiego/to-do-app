@@ -1,16 +1,13 @@
 import jwt
 import time
 
-import os
-from dotenv import load_dotenv
+from dotenv import dotenv_values
 
-import datetime
+secrets = dotenv_values("./utils/.env")
 
-load_dotenv()
-
-JWT_KEY = os.environ["KEY"]
-JWT_ALGORITHM = os.environ["ALGORITHM"]
-JWT_EXPIRY_TIME = int(os.environ["EXPIRY_TIME"])
+JWT_KEY = secrets["KEY"]
+JWT_ALGORITHM = secrets["ALGORITHM"]
+JWT_EXPIRY_TIME = int(secrets["EXPIRY_TIME"])
 
 
 def token_response(token: str) -> dict:
