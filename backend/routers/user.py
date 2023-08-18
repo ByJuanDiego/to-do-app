@@ -23,7 +23,7 @@ user_router = APIRouter()
 
 @user_router.post(path="/users/signup", tags=["user"], response_model=UserRegistration,
                   status_code=status.HTTP_201_CREATED)
-def user_signup(user: UserRegistration, db: Annotated[Session, Depends(get_db)]) -> JSONResponse:
+def user_signup(user: Annotated[UserRegistration, Depends()], db: Annotated[Session, Depends(get_db)]) -> JSONResponse:
     service = UserService(db)
 
     result = service.get_user_by_username(user.username)

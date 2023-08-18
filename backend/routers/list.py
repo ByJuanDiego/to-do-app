@@ -47,7 +47,7 @@ def authorize_list_access(list_id: int, current_user: User, list_service: ListSe
 
 @list_router.post(path="/lists", tags=["list"], response_model=TodoList, status_code=status.HTTP_201_CREATED,
                   dependencies=[Depends(jwt_bearer)])
-def create_list(todo_list: TodoList,
+def create_list(todo_list: Annotated[TodoList, Depends()],
                 current_user: Annotated[User, Depends(oauth2_bearer)],
                 db: Annotated[Session, Depends(get_db)]) -> JSONResponse:
     user_service = UserService(db)

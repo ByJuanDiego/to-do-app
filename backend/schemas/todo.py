@@ -1,15 +1,15 @@
 from pydantic import BaseModel, Field, ConfigDict
 
-from typing import Optional
-
 
 class Todo(BaseModel):
 
-    list_id: Optional[int] = Field(ge=1, default=None)
+    list_id: int = Field(ge=1)
 
     title: str = Field(max_length=60)
 
     description: str = Field(max_length=400)
+
+    completed: bool = Field(default=False)
 
     model_config = ConfigDict(from_attributes=True, json_schema_extra={
             "examples": [

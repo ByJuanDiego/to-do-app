@@ -20,7 +20,7 @@ todo_router = APIRouter()
 
 @todo_router.post(path="/todos", tags=["todo"], response_model=Todo, status_code=status.HTTP_201_CREATED,
                   dependencies=[Depends(jwt_bearer)])
-def create_todo(todo: Todo,
+def create_todo(todo: Annotated[Todo, Depends()],
                 current_user: Annotated[User, Depends(oauth2_bearer)],
                 db: Annotated[Session, Depends(get_db)]) -> JSONResponse:
 
