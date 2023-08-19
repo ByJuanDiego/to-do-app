@@ -1,7 +1,9 @@
-from fastapi import APIRouter, HTTPException, Depends, Path, status
+from fastapi import APIRouter, HTTPException, Depends, Path, status, Query
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordRequestForm
+
+from pydantic import SecretStr
 
 from typing import Dict, List, Annotated
 
@@ -118,7 +120,33 @@ def get_lists_for_user(user_id: Annotated[str, Path(max_length=100)],
     return JSONResponse(status_code=status.HTTP_200_OK, content=jsonable_encoder(lists))
 
 
-# TODO:
-#   - get    "/users/{user_id}/todos"?
-#   - patch  "/users/{user_id}/change_name"?
-#   - delete "/users/{user_id}"
+# TODO
+@user_router.patch(path="/users/{user_id}/change_name", tags=["user"], status_code=status.HTTP_200_OK,
+                   dependencies=[Depends(jwt_bearer)])
+def change_name(user_id: Annotated[str, Path(max_length=100)], new_name: Annotated[str, Path(max_length=100)],
+                current_user: Annotated[User, Depends(oauth2_bearer)]):
+    return JSONResponse(status_code=status.HTTP_200_OK, content={})
+
+
+# TODO
+@user_router.patch(path="/users/{user_id}/deactivate", tags=["user"], status_code=status.HTTP_200_OK,
+                   dependencies=[Depends(jwt_bearer)])
+def deactivate_account(user_id: Annotated[str, Path(max_length=100)],
+                       current_user: Annotated[User, Depends(oauth2_bearer)]):
+
+    return JSONResponse(status_code=status.HTTP_200_OK, content={})
+
+
+# # TODO
+@user_router.patch(path="/users/{user_id}/reactivate", tags=["user"], status_code=status.HTTP_200_OK)
+def reactivate_account(user_id: Annotated[str, Path(max_length=100)],
+                       user_password: Annotated[SecretStr, Query(max_length=255)]):
+    return JSONResponse(status_code=status.HTTP_200_OK, content={})
+
+
+# TODO
+@user_router.delete(path="/users/{user_id}", tags=["user"], status_code=status.HTTP_204_NO_CONTENT,
+                    dependencies=[Depends(jwt_bearer)])
+def delete_account(user_id: Annotated[str, Path(max_length=100)],
+                   current_user: Annotated[User, Depends(oauth2_bearer)]):
+    return JSONResponse(status_code=status.HTTP_204_OK, content={})

@@ -97,6 +97,7 @@ def get_todo_by_id(todo_id: Annotated[int, Path(ge=1)],
     return JSONResponse(status_code=status.HTTP_200_OK, content=Todo.model_validate(todo).model_dump())
 
 
+# TODO
 @todo_router.patch(path="/todos/{todo_id}/completed", tags=["todo"], status_code=status.HTTP_200_OK,
                    dependencies=[Depends(jwt_bearer)])
 def mark_todo_as_completed(todo_id: Annotated[int, Path(ge=1)],
@@ -105,9 +106,19 @@ def mark_todo_as_completed(todo_id: Annotated[int, Path(ge=1)],
     pass
 
 
+# TODO
 @todo_router.patch(path="/todos/{todo_id}/uncompleted", tags=["todo"], status_code=status.HTTP_200_OK,
                    dependencies=[Depends(jwt_bearer)])
 def mark_todo_as_uncompleted(todo_id: Annotated[int, Path(ge=1)],
                              current_user: Annotated[User, Depends(oauth2_bearer)],
                              db: Annotated[Session, Depends(get_db)]) -> JSONResponse:
+    pass
+
+
+# TODO
+@todo_router.delete(path="/todos/{todo_id}", tags=["todo"], status_code=status.HTTP_204_NO_CONTENT,
+                    dependencies=[Depends(jwt_bearer)])
+def delete_todo(todo_id: Annotated[int, Path(ge=1)],
+                current_user: Annotated[User, Depends(oauth2_bearer)],
+                db: Annotated[Session, Depends(get_db)]) -> JSONResponse:
     pass

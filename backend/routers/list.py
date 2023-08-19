@@ -87,7 +87,7 @@ def create_list(todo_list: Annotated[TodoList, Depends()],
     return JSONResponse(status_code=status.HTTP_201_CREATED, content=todo_list.model_dump())
 
 
-@list_router.get(path="/list/{list_id}", tags=["list"], response_model=TodoListResponse, status_code=status.HTTP_200_OK,
+@list_router.get(path="/lists/{list_id}", tags=["list"], response_model=TodoListResponse, status_code=status.HTTP_200_OK,
                  dependencies=[Depends(jwt_bearer)])
 def get_list_by_id(list_id: Annotated[int, Path(ge=1)],
                    current_user: Annotated[User, Depends(oauth2_bearer)],
